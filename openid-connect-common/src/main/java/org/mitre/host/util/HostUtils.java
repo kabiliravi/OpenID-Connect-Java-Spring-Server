@@ -3,7 +3,6 @@ package org.mitre.host.util;
 import java.net.URL;
 
 import org.mitre.exception.SystemException;
-import org.mitre.openid.connect.config.ConfigurationPropertiesBean;
 import org.mitre.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +50,7 @@ public class HostUtils {
 		}
 		fullPath.append(contextPath);
 		fullPath.append("/");
-		logger.info("Host: " + fullPath.toString());
+		logger.debug("Host: " + fullPath.toString());
 		return fullPath.toString();
 	}
 }
