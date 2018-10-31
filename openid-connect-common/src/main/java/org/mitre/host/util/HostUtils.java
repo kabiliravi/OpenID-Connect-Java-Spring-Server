@@ -40,8 +40,10 @@ public class HostUtils {
 		fullPath.append(url.getProtocol());
 		fullPath.append("://");
 		fullPath.append(url.getHost());
-		fullPath.append(":");
-		fullPath.append(url.getPort());
+		if(url.getPort() > 0 && url.getPort() != 80) {
+			fullPath.append(":");
+			fullPath.append(url.getPort());
+		}
 		fullPath.append(contextPath);
 		fullPath.append("/");
 		return fullPath.toString();
