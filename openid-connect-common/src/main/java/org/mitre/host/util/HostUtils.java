@@ -3,10 +3,15 @@ package org.mitre.host.util;
 import java.net.URL;
 
 import org.mitre.exception.SystemException;
+import org.mitre.openid.connect.config.ConfigurationPropertiesBean;
 import org.mitre.util.ThreadUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HostUtils {
 
+	private static final Logger logger = LoggerFactory.getLogger(HostUtils.class);
+	
 	public static final String CURRENT_HOST_URL_ATTR = "currentHostUrl";
 	
 	public static final String CURRENT_CONTEXT_PATH = "currentContextPath";
@@ -46,6 +51,7 @@ public class HostUtils {
 		}
 		fullPath.append(contextPath);
 		fullPath.append("/");
+		logger.info("Host: " + fullPath.toString());
 		return fullPath.toString();
 	}
 }
