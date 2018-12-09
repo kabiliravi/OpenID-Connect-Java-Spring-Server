@@ -17,6 +17,13 @@
  *******************************************************************************/
 package org.mitre.oauth2.service.impl;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -49,14 +56,6 @@ import org.mockito.stubbing.Answer;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
 
 import com.google.common.collect.Sets;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 /**
  * @author wkim
@@ -107,7 +106,7 @@ public class TestDefaultOAuth2ClientDetailsEntityService {
 			}
 		});
 
-		Mockito.when(clientRepository.updateClient(Matchers.anyLong(), Matchers.any(ClientDetailsEntity.class))).thenAnswer(new Answer<ClientDetailsEntity>() {
+		Mockito.when(clientRepository.updateClient(Matchers.anyString(), Matchers.any(ClientDetailsEntity.class))).thenAnswer(new Answer<ClientDetailsEntity>() {
 			@Override
 			public ClientDetailsEntity answer(InvocationOnMock invocation) throws Throwable {
 				Object[] args = invocation.getArguments();
@@ -122,7 +121,7 @@ public class TestDefaultOAuth2ClientDetailsEntityService {
 				Set<String> input = (Set<String>) args[0];
 				Set<SystemScope> output = new HashSet<>();
 				for (String scope : input) {
-					output.add(new SystemScope(scope));
+					output.add(new SystemScope(null, scope));
 				}
 				return output;
 			}
@@ -146,19 +145,6 @@ public class TestDefaultOAuth2ClientDetailsEntityService {
 
 		Mockito.when(config.isHeartMode()).thenReturn(false);
 
-	}
-
-	/**
-	 * Failure case of existing client id.
-	 */
-	@Test(expected = IllegalArgumentException.class)
-	public void saveNewClient_badId() {
-
-		// Set up a mock client.
-		ClientDetailsEntity client = Mockito.mock(ClientDetailsEntity.class);
-		Mockito.when(client.getId()).thenReturn(12345L); // any non-null ID will work
-
-		service.saveNewClient(client);
 	}
 
 	/**
@@ -256,7 +242,7 @@ public class TestDefaultOAuth2ClientDetailsEntityService {
 	@Test(expected = InvalidClientException.class)
 	public void deleteClient_badId() {
 
-		Long id = 12345L;
+		String id = "12345";
 		ClientDetailsEntity client = Mockito.mock(ClientDetailsEntity.class);
 		Mockito.when(client.getId()).thenReturn(id);
 		Mockito.when(clientRepository.getById(id)).thenReturn(null);
@@ -267,7 +253,7 @@ public class TestDefaultOAuth2ClientDetailsEntityService {
 	@Test
 	public void deleteClient() {
 
-		Long id = 12345L;
+		String id = "12345";
 		String clientId = "b00g3r";
 
 		ClientDetailsEntity client = Mockito.mock(ClientDetailsEntity.class);

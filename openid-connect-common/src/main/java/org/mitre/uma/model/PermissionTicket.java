@@ -18,14 +18,13 @@ package org.mitre.uma.model;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.UUID;
 
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
@@ -47,9 +46,9 @@ import javax.persistence.TemporalType;
 @Entity
 @Table(name = "permission_ticket")
 @NamedQueries({
-	@NamedQuery(name = PermissionTicket.QUERY_TICKET, query = "select p from PermissionTicket p where p.ticket = :" + PermissionTicket.PARAM_TICKET),
-	@NamedQuery(name = PermissionTicket.QUERY_ALL, query = "select p from PermissionTicket p"),
-	@NamedQuery(name = PermissionTicket.QUERY_BY_RESOURCE_SET, query = "select p from PermissionTicket p where p.permission.resourceSet.id = :" + PermissionTicket.PARAM_RESOURCE_SET_ID)
+	@NamedQuery(name = PermissionTicket.QUERY_TICKET, query = "select p from PermissionTicket p where p.hostUuid = :hostUuid and p.ticket = :" + PermissionTicket.PARAM_TICKET),
+	@NamedQuery(name = PermissionTicket.QUERY_ALL, query = "select p from PermissionTicket p where p.hostUuid = :hostUuid"),
+	@NamedQuery(name = PermissionTicket.QUERY_BY_RESOURCE_SET, query = "select p from PermissionTicket p where p.hostUuid = :hostUuid and p.permission.resourceSet.id = :" + PermissionTicket.PARAM_RESOURCE_SET_ID)
 })
 public class PermissionTicket {
 
@@ -57,37 +56,50 @@ public class PermissionTicket {
 	public static final String QUERY_ALL = "PermissionTicket.queryAll";
 	public static final String QUERY_BY_RESOURCE_SET = "PermissionTicket.queryByResourceSet";
 
+	public static final String PARAM_HOST_UUID = "hostUuid";
 	public static final String PARAM_TICKET = "ticket";
 	public static final String PARAM_RESOURCE_SET_ID = "rsid";
 
-	private Long id;
+	private String id;
+	private String hostUuid;
 	private Permission permission;
 	private String ticket;
 	private Date expiration;
 	private Collection<Claim> claimsSupplied;
-
-	/**
-	 * @return the id
-	 */
+	
+	public PermissionTicket() {
+		this.id = UUID.randomUUID().toString();
+	}
+	
+	public PermissionTicket(String uuid) {
+		this.id = uuid;
+	}	
+	
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
-	public Long getId() {
+	@Column(name = "uuid")
+	public String getId() {
 		return id;
 	}
 
-	/**
-	 * @param id the id to set
-	 */
-	public void setId(Long id) {
-		this.id = id;
+	public void setId(String uuid) {
+		this.id = uuid;
+	}
+
+	@Basic
+	@Column(name = "host_uuid")
+	public String getHostUuid() {
+		return hostUuid;
+	}
+
+	public void setHostUuid(String hostUuid) {
+		this.hostUuid = hostUuid;
 	}
 
 	/**
 	 * @return the permission
 	 */
 	@OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-	@JoinColumn(name = "permission_id")
+	@JoinColumn(name = "permission_uuid")
 	public Permission getPermission() {
 		return permission;
 	}

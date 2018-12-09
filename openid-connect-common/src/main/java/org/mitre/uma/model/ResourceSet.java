@@ -18,6 +18,7 @@ package org.mitre.uma.model;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
@@ -26,8 +27,6 @@ import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.NamedQueries;
@@ -38,10 +37,10 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "resource_set")
 @NamedQueries ({
-	@NamedQuery(name = ResourceSet.QUERY_BY_OWNER, query = "select r from ResourceSet r where r.owner = :" + ResourceSet.PARAM_OWNER),
-	@NamedQuery(name = ResourceSet.QUERY_BY_OWNER_AND_CLIENT, query = "select r from ResourceSet r where r.owner = :" + ResourceSet.PARAM_OWNER + " and r.clientId = :" + ResourceSet.PARAM_CLIENTID),
-	@NamedQuery(name = ResourceSet.QUERY_BY_CLIENT, query = "select r from ResourceSet r where r.clientId = :" + ResourceSet.PARAM_CLIENTID),
-	@NamedQuery(name = ResourceSet.QUERY_ALL, query = "select r from ResourceSet r")
+	@NamedQuery(name = ResourceSet.QUERY_BY_OWNER, query = "select r from ResourceSet r where r.hostUuid = :hostUuid and r.owner = :" + ResourceSet.PARAM_OWNER),
+	@NamedQuery(name = ResourceSet.QUERY_BY_OWNER_AND_CLIENT, query = "select r from ResourceSet r where r.hostUuid = :hostUuid and r.owner = :" + ResourceSet.PARAM_OWNER + " and r.clientId = :" + ResourceSet.PARAM_CLIENTID),
+	@NamedQuery(name = ResourceSet.QUERY_BY_CLIENT, query = "select r from ResourceSet r where r.hostUuid = :hostUuid and r.clientId = :" + ResourceSet.PARAM_CLIENTID),
+	@NamedQuery(name = ResourceSet.QUERY_ALL, query = "select r from ResourceSet r where r.hostUuid = :hostUuid")
 })
 public class ResourceSet {
 
@@ -50,10 +49,12 @@ public class ResourceSet {
 	public static final String QUERY_BY_CLIENT = "ResourceSet.queryByClient";
 	public static final String QUERY_ALL = "ResourceSet.queryAll";
 
+	public static final String PARAM_HOST_UUID = "hostUuid";
 	public static final String PARAM_OWNER = "owner";
 	public static final String PARAM_CLIENTID = "clientId";
 
-	private Long id;
+	private String id;
+	private String hostUuid;
 	private String name;
 	private String uri;
 	private String type;
@@ -65,21 +66,32 @@ public class ResourceSet {
 
 	private Collection<Policy> policies = new HashSet<>();
 
-	/**
-	 * @return the id
-	 */
+	public ResourceSet() {
+		this.id = UUID.randomUUID().toString();
+	}
+	
+	public ResourceSet(String id) {
+		this.id = id;
+	}	
+
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
-	public Long getId() {
+	@Column(name = "uuid")	
+	public String getId() {
 		return id;
 	}
 
-	/**
-	 * @param id the id to set
-	 */
-	public void setId(Long id) {
+	public void setId(String id) {
 		this.id = id;
+	}
+
+	@Basic
+	@Column(name = "host_uuid")	
+	public String getHostUuid() {
+		return hostUuid;
+	}
+
+	public void setHostUuid(String hostUuid) {
+		this.hostUuid = hostUuid;
 	}
 
 	/**
@@ -137,7 +149,7 @@ public class ResourceSet {
 	@Column(name = "scope")
 	@CollectionTable(
 			name = "resource_set_scope",
-			joinColumns = @JoinColumn(name = "owner_id")
+			joinColumns = @JoinColumn(name = "resource_set_uuid")
 			)
 	public Set<String> getScopes() {
 		return scopes;
@@ -202,7 +214,7 @@ public class ResourceSet {
 	 * @return the claimsRequired
 	 */
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-	@JoinColumn(name = "resource_set_id")
+	@JoinColumn(name = "resource_set_uuid")
 	public Collection<Policy> getPolicies() {
 		return policies;
 	}

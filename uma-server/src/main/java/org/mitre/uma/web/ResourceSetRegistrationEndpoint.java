@@ -17,7 +17,6 @@ package org.mitre.uma.web;
 
 
 import static org.mitre.oauth2.web.AuthenticationUtilities.ensureOAuthScope;
-import static org.mitre.util.JsonUtils.getAsLong;
 import static org.mitre.util.JsonUtils.getAsString;
 import static org.mitre.util.JsonUtils.getAsStringSet;
 
@@ -128,7 +127,7 @@ public class ResourceSetRegistrationEndpoint {
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-	public String readResourceSet(@PathVariable ("id") Long id, Model m, Authentication auth) {
+	public String readResourceSet(@PathVariable ("id") String id, Model m, Authentication auth) {
 		ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE);
 
 		ResourceSet rs = resourceSetService.getById(id);
@@ -158,7 +157,7 @@ public class ResourceSetRegistrationEndpoint {
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.PUT, consumes = MimeTypeUtils.APPLICATION_JSON_VALUE, produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-	public String updateResourceSet(@PathVariable ("id") Long id, @RequestBody String jsonString, Model m, Authentication auth) {
+	public String updateResourceSet(@PathVariable ("id") String id, @RequestBody String jsonString, Model m, Authentication auth) {
 		ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE);
 
 		ResourceSet newRs = parseResourceSet(jsonString);
@@ -203,7 +202,7 @@ public class ResourceSetRegistrationEndpoint {
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE, produces = MimeTypeUtils.APPLICATION_JSON_VALUE)
-	public String deleteResourceSet(@PathVariable ("id") Long id, Model m, Authentication auth) {
+	public String deleteResourceSet(@PathVariable ("id") String id, Model m, Authentication auth) {
 		ensureOAuthScope(auth, SystemScopeService.UMA_PROTECTION_SCOPE);
 
 		ResourceSet rs = resourceSetService.getById(id);
@@ -276,7 +275,7 @@ public class ResourceSetRegistrationEndpoint {
 				JsonObject o = el.getAsJsonObject();
 
 				ResourceSet rs = new ResourceSet();
-				rs.setId(getAsLong(o, "_id"));
+				rs.setId(getAsString(o, "_id"));
 				rs.setName(getAsString(o, "name"));
 				rs.setIconUri(getAsString(o, "icon_uri"));
 				rs.setType(getAsString(o, "type"));

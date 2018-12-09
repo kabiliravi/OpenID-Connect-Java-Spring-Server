@@ -63,7 +63,7 @@ public class DefaultApprovedSiteService implements ApprovedSiteService {
 
 	@Override
 	public Collection<ApprovedSite> getAll() {
-		return approvedSiteRepository.getAll();
+		return approvedSiteRepository.getAllByHostUuid();
 	}
 
 	@Override
@@ -75,7 +75,7 @@ public class DefaultApprovedSiteService implements ApprovedSiteService {
 	}
 
 	@Override
-	public ApprovedSite getById(Long id) {
+	public ApprovedSite getById(String id) {
 		return approvedSiteRepository.getById(id);
 	}
 

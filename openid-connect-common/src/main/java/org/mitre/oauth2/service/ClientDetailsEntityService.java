@@ -27,7 +27,7 @@ public interface ClientDetailsEntityService extends ClientDetailsService {
 
 	public ClientDetailsEntity saveNewClient(ClientDetailsEntity client);
 
-	public ClientDetailsEntity getClientById(Long id);
+	public ClientDetailsEntity getClientById(String uuid);
 
 	@Override
 	public ClientDetailsEntity loadClientByClientId(String clientId) throws OAuth2Exception;

@@ -67,7 +67,7 @@ public class UserInfoInterceptor extends HandlerInterceptorAdapter {
 
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-
+		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
 		if (auth instanceof Authentication){

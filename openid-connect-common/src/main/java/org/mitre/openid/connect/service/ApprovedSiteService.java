@@ -69,7 +69,7 @@ public interface ApprovedSiteService {
 	 *            id for ApprovedSite
 	 * @return ApprovedSite for id, or null
 	 */
-	public ApprovedSite getById(Long id);
+	public ApprovedSite getById(String uuid);
 
 	/**
 	 * Remove the ApprovedSite

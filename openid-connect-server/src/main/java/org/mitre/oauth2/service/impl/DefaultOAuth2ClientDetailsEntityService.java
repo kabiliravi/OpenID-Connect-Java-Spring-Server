@@ -108,9 +108,6 @@ public class DefaultOAuth2ClientDetailsEntityService implements ClientDetailsEnt
 
 	@Override
 	public ClientDetailsEntity saveNewClient(ClientDetailsEntity client) {
-		if (client.getId() != null) { // if it's not null, it's already been saved, this is an error
-			throw new IllegalArgumentException("Tried to save a new client with an existing ID: " + client.getId());
-		}
 
 		if (client.getRegisteredRedirectUri() != null) {
 			for (String uri : client.getRegisteredRedirectUri()) {
@@ -325,7 +322,7 @@ public class DefaultOAuth2ClientDetailsEntityService implements ClientDetailsEnt
 	 * Get the client by its internal ID
 	 */
 	@Override
-	public ClientDetailsEntity getClientById(Long id) {
+	public ClientDetailsEntity getClientById(String id) {
 		ClientDetailsEntity client = clientRepository.getById(id);
 
 		return client;

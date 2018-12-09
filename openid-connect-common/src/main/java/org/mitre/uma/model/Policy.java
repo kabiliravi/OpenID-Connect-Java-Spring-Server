@@ -18,6 +18,7 @@ package org.mitre.uma.model;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
@@ -26,8 +27,6 @@ import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
@@ -44,26 +43,38 @@ import javax.persistence.Table;
 @Table(name = "policy")
 public class Policy {
 
-	private Long id;
+	private String id;
+	private String hostid;
 	private String name;
 	private Collection<Claim> claimsRequired;
 	private Set<String> scopes;
+	
+	public Policy() {
+		this.id = UUID.randomUUID().toString();
+	}
+	
+	public Policy(String id) {
+		this.id = id;
+	}	
 
-	/**
-	 * @return the id
-	 */
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
-	public Long getId() {
+	public String getId() {
 		return id;
 	}
 
-	/**
-	 * @param id the id to set
-	 */
-	public void setId(Long id) {
+	public void setId(String id) {
 		this.id = id;
+	}
+
+	@Basic
+	@Column(name = "host_id")
+	public String getHostid() {
+		return hostid;
+	}
+
+	public void setHostid(String hostid) {
+		this.hostid = hostid;
 	}
 
 	/**
@@ -109,7 +120,7 @@ public class Policy {
 	@Column(name = "scope")
 	@CollectionTable(
 			name = "policy_scope",
-			joinColumns = @JoinColumn(name = "owner_id")
+			joinColumns = @JoinColumn(name = "policy_id")
 			)
 	public Set<String> getScopes() {
 		return scopes;

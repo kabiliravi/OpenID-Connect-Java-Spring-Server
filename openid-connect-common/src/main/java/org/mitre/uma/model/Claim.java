@@ -17,6 +17,7 @@
 package org.mitre.uma.model;
 
 import java.util.Set;
+import java.util.UUID;
 
 import javax.persistence.Basic;
 import javax.persistence.CollectionTable;
@@ -25,8 +26,6 @@ import javax.persistence.Convert;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Table;
@@ -43,7 +42,8 @@ import com.google.gson.JsonElement;
 @Table(name = "claim")
 public class Claim {
 
-	private Long id;
+	private String id;
+	private String hostUuid;
 	private String name;
 	private String friendlyName;
 	private String claimType;
@@ -51,21 +51,34 @@ public class Claim {
 	private Set<String> claimTokenFormat;
 	private Set<String> issuer;
 
-	/**
-	 * @return the id
-	 */
+	public Claim() {
+		this.id = UUID.randomUUID().toString();
+	}
+	
+	public Claim(String uuid) {
+		this.id = uuid;
+	}
+	
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
-	public Long getId() {
+	@Column(name = "uuid")
+	public String getId() {
 		return id;
 	}
-	/**
-	 * @param id the id to set
-	 */
-	public void setId(Long id) {
-		this.id = id;
+	
+	public void setId(String uuid) {
+		this.id = uuid;
 	}
+	
+	@Basic
+	@Column(name = "host_uuid")
+	public String getHostUuid() {
+		return hostUuid;
+	}
+	
+	public void setHostUuid(String hostUuid) {
+		this.hostUuid = hostUuid;
+	}
+	
 	/**
 	 * @return the name
 	 */
@@ -118,7 +131,7 @@ public class Claim {
 	@Column(name = "claim_token_format")
 	@CollectionTable(
 			name = "claim_token_format",
-			joinColumns = @JoinColumn(name = "owner_id")
+			joinColumns = @JoinColumn(name = "claim_uuid")
 			)
 	public Set<String> getClaimTokenFormat() {
 		return claimTokenFormat;
@@ -134,11 +147,11 @@ public class Claim {
 	 * @return the issuer
 	 */
 	@ElementCollection(fetch = FetchType.EAGER)
-	@Column(name = "issuer")
 	@CollectionTable(
 			name = "claim_issuer",
-			joinColumns = @JoinColumn(name = "owner_id")
+			joinColumns = @JoinColumn(name = "claim_uuid", referencedColumnName="uuid")
 			)
+	@Column(name = "issuer")
 	public Set<String> getIssuer() {
 		return issuer;
 	}

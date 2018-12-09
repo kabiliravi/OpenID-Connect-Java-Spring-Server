@@ -44,7 +44,7 @@ public class DefaultIntrospectionResultAssembler implements IntrospectionResultA
 	 * Logger for this class
 	 */
 	private static final Logger logger = LoggerFactory.getLogger(DefaultIntrospectionResultAssembler.class);
-
+	
 	@Override
 	public Map<String, Object> assembleFrom(OAuth2AccessTokenEntity accessToken, UserInfo userInfo, Set<String> authScopes) {
 

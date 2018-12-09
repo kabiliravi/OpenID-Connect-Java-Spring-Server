@@ -33,7 +33,7 @@ public interface OAuth2TokenRepository {
 
 	public OAuth2RefreshTokenEntity getRefreshTokenByValue(String refreshTokenValue);
 
-	public OAuth2RefreshTokenEntity getRefreshTokenById(Long Id);
+	public OAuth2RefreshTokenEntity getRefreshTokenById(String uuid);
 
 	public void clearAccessTokensForRefreshToken(OAuth2RefreshTokenEntity refreshToken);
 
@@ -43,7 +43,7 @@ public interface OAuth2TokenRepository {
 
 	public OAuth2AccessTokenEntity getAccessTokenByValue(String accessTokenValue);
 
-	public OAuth2AccessTokenEntity getAccessTokenById(Long id);
+	public OAuth2AccessTokenEntity getAccessTokenById(String uuid);
 
 	public void removeAccessToken(OAuth2AccessTokenEntity accessToken);
 

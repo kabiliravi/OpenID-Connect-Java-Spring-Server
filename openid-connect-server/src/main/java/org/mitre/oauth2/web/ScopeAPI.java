@@ -21,6 +21,7 @@
 package org.mitre.oauth2.web;
 
 import java.util.Set;
+import java.util.UUID;
 
 import org.mitre.oauth2.model.SystemScope;
 import org.mitre.oauth2.service.SystemScopeService;
@@ -75,7 +76,7 @@ public class ScopeAPI {
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public String getScope(@PathVariable("id") Long id, ModelMap m) {
+	public String getScope(@PathVariable("id") String id, ModelMap m) {
 
 		SystemScope scope = scopeService.getById(id);
 
@@ -96,7 +97,7 @@ public class ScopeAPI {
 
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@RequestMapping(value = "/{id}", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public String updateScope(@PathVariable("id") Long id, @RequestBody String json, ModelMap m) {
+	public String updateScope(@PathVariable("id") String id, @RequestBody String json, ModelMap m) {
 
 		SystemScope existing = scopeService.getById(id);
 
@@ -137,6 +138,7 @@ public class ScopeAPI {
 	public String createScope(@RequestBody String json, ModelMap m) {
 		SystemScope scope = gson.fromJson(json, SystemScope.class);
 
+		scope.setId(UUID.randomUUID().toString());
 		SystemScope alreadyExists = scopeService.getByValue(scope.getValue());
 		if (alreadyExists != null) {
 			//Error, cannot save a scope with the same value as an existing one
@@ -165,7 +167,7 @@ public class ScopeAPI {
 
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-	public String deleteScope(@PathVariable("id") Long id, ModelMap m) {
+	public String deleteScope(@PathVariable("id") String id, ModelMap m) {
 		SystemScope existing = scopeService.getById(id);
 
 		if (existing != null) {

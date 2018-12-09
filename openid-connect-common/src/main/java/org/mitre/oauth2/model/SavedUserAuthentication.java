@@ -18,6 +18,7 @@ package org.mitre.oauth2.model;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.UUID;
 
 import javax.persistence.Basic;
 import javax.persistence.CollectionTable;
@@ -26,8 +27,6 @@ import javax.persistence.Convert;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Table;
@@ -49,7 +48,9 @@ public class SavedUserAuthentication implements Authentication {
 
 	private static final long serialVersionUID = -1804249963940323488L;
 
-	private Long id;
+	private String id;
+	
+	private String hostUuid;
 
 	private String name;
 
@@ -63,6 +64,7 @@ public class SavedUserAuthentication implements Authentication {
 	 * Create a Saved Auth from an existing Auth token
 	 */
 	public SavedUserAuthentication(Authentication src) {
+		this.id = UUID.randomUUID().toString();
 		setName(src.getName());
 		setAuthorities(new HashSet<>(src.getAuthorities()));
 		setAuthenticated(src.isAuthenticated());
@@ -74,29 +76,33 @@ public class SavedUserAuthentication implements Authentication {
 			setSourceClass(src.getClass().getName());
 		}
 	}
-
-	/**
-	 * Create an empty saved auth
-	 */
+	
 	public SavedUserAuthentication() {
-
+		this.id = UUID.randomUUID().toString();
 	}
 
-	/**
-	 * @return the id
-	 */
+	public SavedUserAuthentication(String uuid) {
+		this.id = uuid;
+	}
+	
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
-	public Long getId() {
+	@Column(name = "uuid")
+	public String getId() {
 		return id;
 	}
 
-	/**
-	 * @param id the id to set
-	 */
-	public void setId(Long id) {
-		this.id = id;
+	public void setId(String uuid) {
+		this.id = uuid;
+	}
+	
+	@Basic
+	@Column(name = "host_uuid")
+	public String getHostUuid() {
+		return hostUuid;
+	}
+
+	public void setHostUuid(String hostUuid) {
+		this.hostUuid = hostUuid;
 	}
 
 	@Override
@@ -110,7 +116,7 @@ public class SavedUserAuthentication implements Authentication {
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(
 			name="saved_user_auth_authority",
-			joinColumns=@JoinColumn(name="owner_id")
+			joinColumns=@JoinColumn(name="user_auth_uuid")
 			)
 	@Convert(converter = SimpleGrantedAuthorityStringConverter.class)
 	@Column(name="authority")

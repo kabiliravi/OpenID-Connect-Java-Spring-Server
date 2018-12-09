@@ -30,7 +30,7 @@ public interface DeviceCodeRepository {
 	 * @param id
 	 * @return
 	 */
-	public DeviceCode getById(Long id);
+	public DeviceCode getById(String uuid);
 
 	/**
 	 * @param deviceCode

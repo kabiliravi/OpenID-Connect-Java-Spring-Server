@@ -32,7 +32,7 @@ public interface SystemScopeRepository {
 
 	public Set<SystemScope> getAll();
 
-	public SystemScope getById(Long id);
+	public SystemScope getById(String uuid);
 
 	public SystemScope getByValue(String value);
 

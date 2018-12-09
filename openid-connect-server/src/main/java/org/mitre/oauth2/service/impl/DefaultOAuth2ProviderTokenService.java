@@ -36,6 +36,7 @@ import java.util.UUID;
 
 import org.mitre.data.AbstractPageOperationTemplate;
 import org.mitre.data.DefaultPageCriteria;
+import org.mitre.host.service.HostInfoService;
 import org.mitre.oauth2.model.AuthenticationHolderEntity;
 import org.mitre.oauth2.model.ClientDetailsEntity;
 import org.mitre.oauth2.model.OAuth2AccessTokenEntity;
@@ -84,6 +85,9 @@ public class DefaultOAuth2ProviderTokenService implements OAuth2TokenEntityServi
 	private static final Logger logger = LoggerFactory.getLogger(DefaultOAuth2ProviderTokenService.class);
 
 	@Autowired
+	private HostInfoService hostInfoService;
+	
+	@Autowired
 	private OAuth2TokenRepository tokenRepository;
 
 	@Autowired
@@ -112,12 +116,12 @@ public class DefaultOAuth2ProviderTokenService implements OAuth2TokenEntityServi
 	}
 
 	@Override
-	public OAuth2AccessTokenEntity getAccessTokenById(Long id) {
+	public OAuth2AccessTokenEntity getAccessTokenById(String id) {
 		return clearExpiredAccessToken(tokenRepository.getAccessTokenById(id));
 	}
 
 	@Override
-	public OAuth2RefreshTokenEntity getRefreshTokenById(Long id) {
+	public OAuth2RefreshTokenEntity getRefreshTokenById(String id) {
 		return clearExpiredRefreshToken(tokenRepository.getRefreshTokenById(id));
 	}
 
@@ -220,7 +224,7 @@ public class DefaultOAuth2ProviderTokenService implements OAuth2TokenEntityServi
 
 			// attach the authorization so that we can look it up later
 			AuthenticationHolderEntity authHolder = new AuthenticationHolderEntity();
-			authHolder.setAuthentication(authentication);
+			authHolder.setAuthentication(authentication, hostInfoService.getCurrentHostUuid());
 			authHolder = authenticationHolderRepository.save(authHolder);
 
 			token.setAuthenticationHolder(authHolder);
@@ -237,7 +241,7 @@ public class DefaultOAuth2ProviderTokenService implements OAuth2TokenEntityServi
 
 			if (originalAuthRequest.getExtensions() != null && originalAuthRequest.getExtensions().containsKey("approved_site")) {
 
-				Long apId = Long.parseLong((String) originalAuthRequest.getExtensions().get("approved_site"));
+				String apId = (String) originalAuthRequest.getExtensions().get("approved_site");
 				ApprovedSite ap = approvedSiteService.getById(apId);
 
 				token.setApprovedSite(ap);

@@ -19,6 +19,7 @@ package org.mitre.openid.connect.model;
 
 import java.util.Date;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.persistence.Basic;
 import javax.persistence.CollectionTable;
@@ -26,8 +27,6 @@ import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.NamedQueries;
@@ -40,22 +39,27 @@ import javax.persistence.Transient;
 @Table(name="approved_site")
 @NamedQueries({
 	@NamedQuery(name = ApprovedSite.QUERY_ALL, query = "select a from ApprovedSite a"),
-	@NamedQuery(name = ApprovedSite.QUERY_BY_USER_ID, query = "select a from ApprovedSite a where a.userId = :" + ApprovedSite.PARAM_USER_ID),
-	@NamedQuery(name = ApprovedSite.QUERY_BY_CLIENT_ID, query = "select a from ApprovedSite a where a.clientId = :" + ApprovedSite.PARAM_CLIENT_ID),
-	@NamedQuery(name = ApprovedSite.QUERY_BY_CLIENT_ID_AND_USER_ID, query = "select a from ApprovedSite a where a.clientId = :" + ApprovedSite.PARAM_CLIENT_ID + " and a.userId = :" + ApprovedSite.PARAM_USER_ID)
+	@NamedQuery(name = ApprovedSite.QUERY_BY_HOST_UUID, query = "select a from ApprovedSite a where a.hostUuid = :hostUuid"),
+	@NamedQuery(name = ApprovedSite.QUERY_BY_USER_ID, query = "select a from ApprovedSite a where a.hostUuid = :hostUuid and a.userId = :" + ApprovedSite.PARAM_USER_ID),
+	@NamedQuery(name = ApprovedSite.QUERY_BY_CLIENT_ID, query = "select a from ApprovedSite a where a.hostUuid = :hostUuid and a.clientId = :" + ApprovedSite.PARAM_CLIENT_ID),
+	@NamedQuery(name = ApprovedSite.QUERY_BY_CLIENT_ID_AND_USER_ID, query = "select a from ApprovedSite a where a.hostUuid = :hostUuid and a.clientId = :" + ApprovedSite.PARAM_CLIENT_ID + " and a.userId = :" + ApprovedSite.PARAM_USER_ID)
 })
 public class ApprovedSite {
 
 	public static final String QUERY_BY_CLIENT_ID_AND_USER_ID = "ApprovedSite.getByClientIdAndUserId";
 	public static final String QUERY_BY_CLIENT_ID = "ApprovedSite.getByClientId";
 	public static final String QUERY_BY_USER_ID = "ApprovedSite.getByUserId";
+	public static final String QUERY_BY_HOST_UUID = "ApprovedSite.getByHostUuid";
 	public static final String QUERY_ALL = "ApprovedSite.getAll";
 
+	public static final String PARAM_HOST_UUID = "hostUuid";
 	public static final String PARAM_CLIENT_ID = "clientId";
 	public static final String PARAM_USER_ID = "userId";
 
 	// unique id
-	private Long id;
+	private String id;
+	
+	private String hostUuid;
 
 	// which user made the approval
 	private String userId;
@@ -76,28 +80,33 @@ public class ApprovedSite {
 	// this should include all information for what data to access
 	private Set<String> allowedScopes;
 
-	/**
-	 * Empty constructor
-	 */
-	public ApprovedSite() {
 
+	public ApprovedSite() {
+		this.id = UUID.randomUUID().toString();
+	}
+	
+	public ApprovedSite(String uuid) {
+		this.id = uuid;
 	}
 
-	/**
-	 * @return the id
-	 */
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
-	public Long getId() {
+	@Column(name = "uuid")
+	public String getId() {
 		return id;
 	}
 
-	/**
-	 * @param id the id to set
-	 */
-	public void setId(Long id) {
-		this.id = id;
+	public void setId(String uuid) {
+		this.id = uuid;
+	}
+
+	@Basic
+	@Column(name = "host_uuid")
+	public String getHostUuid() {
+		return hostUuid;
+	}
+
+	public void setHostUuid(String hostUuid) {
+		this.hostUuid = hostUuid;
 	}
 
 	/**
@@ -172,7 +181,7 @@ public class ApprovedSite {
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(
 			name="approved_site_scope",
-			joinColumns=@JoinColumn(name="owner_id")
+			joinColumns=@JoinColumn(name="approved_site_uuid")
 			)
 	@Column(name="scope")
 	public Set<String> getAllowedScopes() {

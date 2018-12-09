@@ -35,6 +35,7 @@ public interface MITREidDataService {
 	public static final String MITREID_CONNECT_1_1 = "mitreid-connect-1.1";
 	public static final String MITREID_CONNECT_1_2 = "mitreid-connect-1.2";
 	public static final String MITREID_CONNECT_1_3 = "mitreid-connect-1.3";
+	public static final String MITREID_CONNECT_2_0 = "mitreid-connect-2.0";
 
 	// member names
 	public static final String REFRESHTOKENS = "refreshTokens";
