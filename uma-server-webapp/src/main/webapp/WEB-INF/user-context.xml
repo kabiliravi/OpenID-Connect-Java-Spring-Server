@@ -92,7 +92,7 @@
 				<property name="tokenEndpointAuthMethod" value="SECRET_BASIC" />
 				<property name="redirectUris">
 					<set>
-						<value>#{configBean.issuer + "openid_connect_login"}</value>
+						<value>#{"http://localhost:9080/uma-server-webapp/openid_connect_login"}</value>
 					</set>
 				</property>
 			</bean>

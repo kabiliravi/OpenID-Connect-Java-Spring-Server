@@ -256,7 +256,7 @@ CREATE TABLE IF NOT EXISTS system_scope (
 	icon VARCHAR(255),
 	restricted BOOLEAN DEFAULT false NOT NULL,
 	default_scope BOOLEAN DEFAULT false NOT NULL,
-	UNIQUE (scope)
+	UNIQUE system_scope_uk (host_uuid, scope)
 );
 
 CREATE TABLE IF NOT EXISTS user_info (
