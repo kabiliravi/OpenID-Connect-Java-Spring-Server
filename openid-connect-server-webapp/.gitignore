@@ -10,3 +10,5 @@ bin
 .classpath
 /target
 .springBeans
+/**/*/.DS_Store
+/.DS_Store
