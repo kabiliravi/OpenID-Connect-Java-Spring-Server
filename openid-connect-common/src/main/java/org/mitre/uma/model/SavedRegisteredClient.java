@@ -16,12 +16,12 @@
 
 package org.mitre.uma.model;
 
+import java.util.UUID;
+
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -36,26 +36,37 @@ import org.mitre.uma.model.convert.RegisteredClientStringConverter;
 @Table(name = "saved_registered_client")
 public class SavedRegisteredClient {
 
-	private Long id;
+	private String id;
+	private String hostUuid;
 	private String issuer;
 	private RegisteredClient registeredClient;
 
-	/**
-	 * @return the id
-	 */
+	public SavedRegisteredClient() {
+		this.id = UUID.randomUUID().toString();
+	}
+	
+	public SavedRegisteredClient(String uuid) {
+		this.id = uuid;
+	}	
+	
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
-	public Long getId() {
+	@Column(name = "uuid")
+	public String getId() {
 		return id;
 	}
 
-	/**
-	 *
-	 * @param id the id to set
-	 */
-	public void setId(Long id) {
-		this.id = id;
+	public void setId(String uuid) {
+		this.id = uuid;
+	}
+
+	@Basic
+	@Column(name = "host_uuid")
+	public String getHostUuid() {
+		return hostUuid;
+	}
+
+	public void setHostUuid(String hostUuid) {
+		this.hostUuid = hostUuid;
 	}
 
 	/**

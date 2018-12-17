@@ -23,7 +23,7 @@ import org.mitre.oauth2.model.ClientDetailsEntity;
 
 public interface OAuth2ClientRepository {
 
-	public ClientDetailsEntity getById(Long id);
+	public ClientDetailsEntity getById(String uuid);
 
 	public ClientDetailsEntity getClientByClientId(String clientId);
 
@@ -31,7 +31,7 @@ public interface OAuth2ClientRepository {
 
 	public void deleteClient(ClientDetailsEntity client);
 
-	public ClientDetailsEntity updateClient(Long id, ClientDetailsEntity client);
+	public ClientDetailsEntity updateClient(String uuid, ClientDetailsEntity client);
 
 	public Collection<ClientDetailsEntity> getAllClients();
 

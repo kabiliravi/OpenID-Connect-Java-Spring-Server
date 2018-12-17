@@ -20,11 +20,11 @@
  */
 package org.mitre.openid.connect.model;
 
+import java.util.UUID;
+
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -35,43 +35,52 @@ import javax.persistence.Table;
  *
  */
 @Entity
-@Table(name="blacklisted_site")
-@NamedQueries({
-	@NamedQuery(name = BlacklistedSite.QUERY_ALL, query = "select b from BlacklistedSite b")
-})
+@Table(name = "blacklisted_site")
+@NamedQueries({ @NamedQuery(name = BlacklistedSite.QUERY_ALL, query = "select b from BlacklistedSite b where b.hostUuid = :hostUuid") })
 public class BlacklistedSite {
 
 	public static final String QUERY_ALL = "BlacklistedSite.getAll";
 
+	public static final String PARAM_HOST_UUID = "hostUuid";
+	
 	// unique id
-	private Long id;
+	private String id;
+
+	private String hostUuid;
 
 	// URI pattern to black list
 	private String uri;
 
 	public BlacklistedSite() {
-
+		this.id = UUID.randomUUID().toString();
+	}
+	
+	public BlacklistedSite(String uuid) {
+		this.id = uuid;
 	}
 
-	/**
-	 * @return the id
-	 */
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
-	public Long getId() {
+	@Column(name = "uuid")
+	public String getId() {
 		return id;
 	}
 
-	/**
-	 * @param id the id to set
-	 */
-	public void setId(Long id) {
-		this.id = id;
+	public void setId(String uuid) {
+		this.id = uuid;
 	}
 
 	@Basic
-	@Column(name="uri")
+	@Column(name = "host_uuid")
+	public String getHostUuid() {
+		return hostUuid;
+	}
+
+	public void setHostUuid(String hostUuid) {
+		this.hostUuid = hostUuid;
+	}
+
+	@Basic
+	@Column(name = "uri")
 	public String getUri() {
 		return uri;
 	}
@@ -79,6 +88,5 @@ public class BlacklistedSite {
 	public void setUri(String uri) {
 		this.uri = uri;
 	}
-
 
 }

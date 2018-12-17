@@ -28,7 +28,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 
+import org.mitre.host.service.HostInfoService;
+import org.mitre.oauth2.model.AuthorizationCodeEntity;
 import org.mitre.oauth2.model.DeviceCode;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,13 +44,21 @@ public class JpaDeviceCodeRepository implements DeviceCodeRepository {
 
 	@PersistenceContext(unitName="defaultPersistenceUnit")
 	private EntityManager em;
+	
+	@Autowired
+	HostInfoService hostInfoService;
 
 	/* (non-Javadoc)
 	 */
 	@Override
 	@Transactional(value="defaultTransactionManager")
-	public DeviceCode getById(Long id) {
-		return em.find(DeviceCode.class, id);
+	public DeviceCode getById(String uuid) {
+		DeviceCode entity = em.find(DeviceCode.class, uuid);
+		if (entity == null) {
+			throw new IllegalArgumentException("DeviceCode not found: " + uuid);
+		}
+		hostInfoService.validateHost(entity.getHostUuid());
+		return entity;
 	}
 
 	/* (non-Javadoc)
@@ -56,6 +67,7 @@ public class JpaDeviceCodeRepository implements DeviceCodeRepository {
 	@Transactional(value="defaultTransactionManager")
 	public DeviceCode getByUserCode(String value) {
 		TypedQuery<DeviceCode> query = em.createNamedQuery(DeviceCode.QUERY_BY_USER_CODE, DeviceCode.class);
+		query.setParameter(AuthorizationCodeEntity.PARAM_HOST_UUID, hostInfoService.getCurrentHostUuid());
 		query.setParameter(DeviceCode.PARAM_USER_CODE, value);
 		return getSingleResult(query.getResultList());
 	}
@@ -66,6 +78,7 @@ public class JpaDeviceCodeRepository implements DeviceCodeRepository {
 	@Transactional(value="defaultTransactionManager")
 	public DeviceCode getByDeviceCode(String value) {
 		TypedQuery<DeviceCode> query = em.createNamedQuery(DeviceCode.QUERY_BY_DEVICE_CODE, DeviceCode.class);
+		query.setParameter(AuthorizationCodeEntity.PARAM_HOST_UUID, hostInfoService.getCurrentHostUuid());
 		query.setParameter(DeviceCode.PARAM_DEVICE_CODE, value);
 		return getSingleResult(query.getResultList());
 	}
@@ -76,11 +89,7 @@ public class JpaDeviceCodeRepository implements DeviceCodeRepository {
 	@Transactional(value="defaultTransactionManager")
 	public void remove(DeviceCode scope) {
 		DeviceCode found = getById(scope.getId());
-
-		if (found != null) {
-			em.remove(found);
-		}
-
+		em.remove(found);
 	}
 
 	/* (non-Javadoc)
@@ -89,6 +98,7 @@ public class JpaDeviceCodeRepository implements DeviceCodeRepository {
 	@Override
 	@Transactional(value="defaultTransactionManager")
 	public DeviceCode save(DeviceCode scope) {
+		scope.setHostUuid(hostInfoService.getCurrentHostUuid());
 		return saveOrUpdate(scope.getId(), em, scope);
 	}
 

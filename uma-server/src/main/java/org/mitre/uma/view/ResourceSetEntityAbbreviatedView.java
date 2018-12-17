@@ -103,7 +103,7 @@ public class ResourceSetEntityAbbreviatedView extends AbstractView {
 
 			JsonObject o = new JsonObject();
 
-			o.addProperty("_id", rs.getId().toString()); // set the ID to a string
+			o.addProperty("_id", rs.getId()); // set the ID to a string
 			o.addProperty("user_access_policy_uri", config.getIssuer() + "manage/user/policy/" + rs.getId());
 
 

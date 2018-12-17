@@ -43,7 +43,7 @@ public interface WhitelistedSiteService {
 	 *            id the id of the WhitelistedSite
 	 * @return a valid WhitelistedSite if it exists, null otherwise
 	 */
-	public WhitelistedSite getById(Long id);
+	public WhitelistedSite getById(String uuid);
 
 	/**
 	 * Find a WhitelistedSite by its associated ClientDetails reference

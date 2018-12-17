@@ -17,14 +17,14 @@
 package org.mitre.uma.model;
 
 import java.util.Set;
+import java.util.UUID;
 
+import javax.persistence.Basic;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -37,32 +37,33 @@ import javax.persistence.Table;
 @Table(name = "permission")
 public class Permission {
 
-	private Long id;
+	private String id;
 	private ResourceSet resourceSet;
 	private Set<String> scopes;
 
-	/**
-	 * @return the id
-	 */
+	public Permission() {
+		this.id = UUID.randomUUID().toString();
+	}
+	
+	public Permission(String uuid) {
+		this.id = uuid;
+	}	
+	
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
-	public Long getId() {
+	@Column(name = "uuid")	
+	public String getId() {
 		return id;
 	}
 
-	/**
-	 * @param id the id to set
-	 */
-	public void setId(Long id) {
-		this.id = id;
+	public void setId(String uuid) {
+		this.id = uuid;
 	}
 
 	/**
 	 * @return the resourceSet
 	 */
 	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "resource_set_id")
+	@JoinColumn(name = "resource_set_uuid")
 	public ResourceSet getResourceSet() {
 		return resourceSet;
 	}
@@ -81,7 +82,7 @@ public class Permission {
 	@Column(name = "scope")
 	@CollectionTable(
 			name = "permission_scope",
-			joinColumns = @JoinColumn(name = "owner_id")
+			joinColumns = @JoinColumn(name = "permission_uuid")
 			)
 	public Set<String> getScopes() {
 		return scopes;

@@ -36,7 +36,7 @@ public interface ApprovedSiteRepository {
 	 *            id the id of the ApprovedSite
 	 * @return a valid ApprovedSite if it exists, null otherwise
 	 */
-	public ApprovedSite getById(Long id);
+	public ApprovedSite getById(String uuid);
 
 	/**
 	 * Return a collection of all ApprovedSites managed by this repository
@@ -44,6 +44,13 @@ public interface ApprovedSiteRepository {
 	 * @return the ApprovedSite collection, or null
 	 */
 	public Collection<ApprovedSite> getAll();
+	
+	/**
+	 * Return a collection of all ApprovedSites of current host
+	 *
+	 * @return the ApprovedSite collection, or null
+	 */
+	public Collection<ApprovedSite> getAllByHostUuid();
 
 	/**
 	 * Return a collection of ApprovedSite managed by this repository matching the

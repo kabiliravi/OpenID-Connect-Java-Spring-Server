@@ -92,7 +92,7 @@
 				<property name="tokenEndpointAuthMethod" value="SECRET_BASIC" />
 				<property name="redirectUris">
 					<set>
-						<value>#{configBean.issuer + "openid_connect_login"}</value>
+						<value>#{"http://localhost:9080/uma-server-webapp/openid_connect_login"}</value>
 					</set>
 				</property>
 			</bean>
@@ -110,8 +110,10 @@
 	<!-- Standard configuration -->
 
 	<security:authentication-manager id="authenticationManager">
-		<security:authentication-provider>
-			<security:jdbc-user-service data-source-ref="dataSource"/>
+		<security:authentication-provider 
+			user-service-ref="defaultUserService">
+				<security:password-encoder ref="defaultPasswordEncoder">
+				</security:password-encoder>
 		</security:authentication-provider>
 	</security:authentication-manager>
 		

@@ -40,7 +40,7 @@ public class DefaultWhitelistedSiteService implements WhitelistedSiteService {
 	private WhitelistedSiteRepository repository;
 
 	@Override
-	public WhitelistedSite getById(Long id) {
+	public WhitelistedSite getById(String id) {
 		return repository.getById(id);
 	}
 

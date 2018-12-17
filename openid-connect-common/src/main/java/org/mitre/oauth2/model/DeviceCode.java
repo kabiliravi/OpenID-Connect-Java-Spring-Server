@@ -19,6 +19,7 @@ package org.mitre.oauth2.model;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.persistence.Basic;
 import javax.persistence.CollectionTable;
@@ -26,8 +27,6 @@ import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -44,8 +43,8 @@ import javax.persistence.Temporal;
 @Entity
 @Table(name = "device_code")
 @NamedQueries({
-	@NamedQuery(name = DeviceCode.QUERY_BY_USER_CODE, query = "select d from DeviceCode d where d.userCode = :" + DeviceCode.PARAM_USER_CODE),
-	@NamedQuery(name = DeviceCode.QUERY_BY_DEVICE_CODE, query = "select d from DeviceCode d where d.deviceCode = :" + DeviceCode.PARAM_DEVICE_CODE),
+	@NamedQuery(name = DeviceCode.QUERY_BY_USER_CODE, query = "select d from DeviceCode d where d.hostUuid = :" + ClientDetailsEntity.PARAM_HOST_UUID + " and d.userCode = :" + DeviceCode.PARAM_USER_CODE),
+	@NamedQuery(name = DeviceCode.QUERY_BY_DEVICE_CODE, query = "select d from DeviceCode d where d.hostUuid = :" + ClientDetailsEntity.PARAM_HOST_UUID + " and d.deviceCode = :" + DeviceCode.PARAM_DEVICE_CODE),
 	@NamedQuery(name = DeviceCode.QUERY_EXPIRED_BY_DATE, query = "select d from DeviceCode d where d.expiration <= :" + DeviceCode.PARAM_DATE)
 })
 public class DeviceCode {
@@ -58,7 +57,8 @@ public class DeviceCode {
 	public static final String PARAM_DEVICE_CODE = "deviceCode";
 	public static final String PARAM_DATE = "date";
 
-	private Long id;
+	private String id;
+	private String hostUuid;
 	private String deviceCode;
 	private String userCode;
 	private Set<String> scope;
@@ -69,10 +69,16 @@ public class DeviceCode {
 	private AuthenticationHolderEntity authenticationHolder;
 
 	public DeviceCode() {
-
+		this.id = UUID.randomUUID().toString();
 	}
 
-	public DeviceCode(String deviceCode, String userCode, Set<String> scope, String clientId, Map<String, String> params) {
+	public DeviceCode(String uuid) {
+		this.id = uuid;
+	}
+	
+	public DeviceCode(String hostUuid, String deviceCode, String userCode, Set<String> scope, String clientId, Map<String, String> params) {
+		this.id = UUID.randomUUID().toString();
+		this.hostUuid = hostUuid;
 		this.deviceCode = deviceCode;
 		this.userCode = userCode;
 		this.scope = scope;
@@ -84,17 +90,23 @@ public class DeviceCode {
 	 * @return the id
 	 */
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
-	public Long getId() {
+	@Column(name = "uuid")	
+	public String getId() {
 		return id;
 	}
 
-	/**
-	 * @param id the id to set
-	 */
-	public void setId(Long id) {
-		this.id = id;
+	public void setId(String uuid) {
+		this.id = uuid;
+	}
+
+	@Basic
+	@Column(name = "host_uuid")
+	public String getHostUuid() {
+		return hostUuid;
+	}
+
+	public void setHostUuid(String hostUuid) {
+		this.hostUuid = hostUuid;
 	}
 
 	/**
@@ -135,7 +147,7 @@ public class DeviceCode {
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(
 			name="device_code_scope",
-			joinColumns=@JoinColumn(name="owner_id")
+			joinColumns=@JoinColumn(name="device_code_uuid")
 			)
 	@Column(name="scope")
 	public Set<String> getScope() {
@@ -182,7 +194,7 @@ public class DeviceCode {
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(
 			name="device_code_request_parameter",
-			joinColumns=@JoinColumn(name="owner_id")
+			joinColumns=@JoinColumn(name="device_code_uuid")
 			)
 	@Column(name="val")
 	@MapKeyColumn(name="param")
@@ -218,7 +230,7 @@ public class DeviceCode {
 	 * @return the authentication
 	 */
 	@ManyToOne
-	@JoinColumn(name = "auth_holder_id")
+	@JoinColumn(name = "auth_holder_uuid")
 	public AuthenticationHolderEntity getAuthenticationHolder() {
 		return authenticationHolder;
 	}

@@ -15,11 +15,11 @@
  *******************************************************************************/
 package org.mitre.openid.connect.model;
 
+import java.util.UUID;
+
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -29,7 +29,8 @@ public class DefaultAddress implements Address {
 
 	private static final long serialVersionUID = -1304880008685206811L;
 
-	private Long id;
+	private String id;
+	private String hostUuid;
 	private String formatted;
 	private String streetAddress;
 	private String locality;
@@ -37,13 +38,13 @@ public class DefaultAddress implements Address {
 	private String postalCode;
 	private String country;
 
-	/**
-	 * Empty constructor
-	 */
 	public DefaultAddress() {
-
+		this.id = UUID.randomUUID().toString();
 	}
-
+	
+	public DefaultAddress(String uuid) {
+		this.id = uuid;
+	}
 	/**
 	 * Copy constructor from an existing address.
 	 * @param address
@@ -57,6 +58,27 @@ public class DefaultAddress implements Address {
 		setCountry(address.getCountry());
 	}
 
+	@Id
+	@Column(name = "uuid")
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String uuid) {
+		this.id = uuid;
+	}
+
+	@Basic
+	@Column(name = "host_uuid")
+	public String getHostUuid() {
+		return hostUuid;
+	}
+
+	public void setHostUuid(String hostUuid) {
+		this.hostUuid = hostUuid;
+	}
+
+	
 	/**
 	 * @return the formatted address string
 	 */
@@ -154,23 +176,8 @@ public class DefaultAddress implements Address {
 		this.country = country;
 	}
 
-	/**
-	 * @return the id
-	 */
-	@Override
-	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name = "id")
-	public Long getId() {
-		return id;
-	}
-
-	/**
-	 * @param id the id to set
-	 */
-	public void setId(Long id) {
-		this.id = id;
-	}
+	
+	
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()

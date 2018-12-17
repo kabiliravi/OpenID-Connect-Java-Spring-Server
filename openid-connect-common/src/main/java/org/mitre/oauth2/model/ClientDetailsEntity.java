@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.persistence.Basic;
 import javax.persistence.CollectionTable;
@@ -35,8 +36,6 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.NamedQueries;
@@ -71,8 +70,8 @@ import com.nimbusds.jwt.JWT;
 @Entity
 @Table(name = "client_details")
 @NamedQueries({
-	@NamedQuery(name = ClientDetailsEntity.QUERY_ALL, query = "SELECT c FROM ClientDetailsEntity c"),
-	@NamedQuery(name = ClientDetailsEntity.QUERY_BY_CLIENT_ID, query = "select c from ClientDetailsEntity c where c.clientId = :" + ClientDetailsEntity.PARAM_CLIENT_ID)
+	@NamedQuery(name = ClientDetailsEntity.QUERY_ALL, query = "select c from ClientDetailsEntity c where c.hostUuid = :" + ClientDetailsEntity.PARAM_HOST_UUID),
+	@NamedQuery(name = ClientDetailsEntity.QUERY_BY_CLIENT_ID, query = "select c from ClientDetailsEntity c where c.hostUuid = :" + ClientDetailsEntity.PARAM_HOST_UUID + " and c.clientId = :" + ClientDetailsEntity.PARAM_CLIENT_ID)
 })
 public class ClientDetailsEntity implements ClientDetails {
 
@@ -80,12 +79,15 @@ public class ClientDetailsEntity implements ClientDetails {
 	public static final String QUERY_ALL = "ClientDetailsEntity.findAll";
 
 	public static final String PARAM_CLIENT_ID = "clientId";
+	public static final String PARAM_HOST_UUID = "hostUuid";
 
 	private static final int DEFAULT_ID_TOKEN_VALIDITY_SECONDS = 600;
 
 	private static final long serialVersionUID = -1617727085733786296L;
 
-	private Long id;
+	private String id;
+
+	private String hostUuid;
 
 	/** Fields from the OAuth2 Dynamic Registration Specification */
 	private String clientId = null; // client_id
@@ -113,15 +115,15 @@ public class ClientDetailsEntity implements ClientDetails {
 
 	private JWSAlgorithm requestObjectSigningAlg = null; // request_object_signing_alg
 
-	private JWSAlgorithm userInfoSignedResponseAlg = null; // user_info_signed_response_alg
-	private JWEAlgorithm userInfoEncryptedResponseAlg = null; // user_info_encrypted_response_alg
-	private EncryptionMethod userInfoEncryptedResponseEnc = null; // user_info_encrypted_response_enc
+	private JWSAlgorithm userInfoSignedResponseAlg = null; // user_info_signed_resp_alg
+	private JWEAlgorithm userInfoEncryptedResponseAlg = null; // user_info_encrypted_resp_alg
+	private EncryptionMethod userInfoEncryptedResponseEnc = null; // user_info_encrypted_resp_enc
 
-	private JWSAlgorithm idTokenSignedResponseAlg = null; // id_token_signed_response_alg
-	private JWEAlgorithm idTokenEncryptedResponseAlg = null; // id_token_encrypted_response_alg
-	private EncryptionMethod idTokenEncryptedResponseEnc = null; // id_token_encrypted_response_enc
+	private JWSAlgorithm idTokenSignedResponseAlg = null; // id_token_signed_resp_alg
+	private JWEAlgorithm idTokenEncryptedResponseAlg = null; // id_token_encrypted_resp_alg
+	private EncryptionMethod idTokenEncryptedResponseEnc = null; // id_token_encrypted_resp_enc
 
-	private JWSAlgorithm tokenEndpointAuthSigningAlg = null; // token_endpoint_auth_signing_alg
+	private JWSAlgorithm tokenEndpointAuthSigningAlg = null; // token_endpoint_auth_sign_alg
 
 	private Integer defaultMaxAge; // default_max_age
 	private Boolean requireAuthTime; // require_auth_time
@@ -240,11 +242,13 @@ public class ClientDetailsEntity implements ClientDetails {
 		}
 	}
 
-	/**
-	 * Create a blank ClientDetailsEntity
-	 */
 	public ClientDetailsEntity() {
+		this.id = UUID.randomUUID().toString();
+	}
 
+	public ClientDetailsEntity(String clientId) {
+		this.id = UUID.randomUUID().toString();
+		this.clientId = clientId;
 	}
 
 	@PrePersist
@@ -256,22 +260,24 @@ public class ClientDetailsEntity implements ClientDetails {
 		}
 	}
 
-	/**
-	 * @return the id
-	 */
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
-	public Long getId() {
+	@Column(name = "uuid")
+	public String getId() {
 		return id;
 	}
 
-	/**
-	 *
-	 * @param id the id to set
-	 */
-	public void setId(Long id) {
-		this.id = id;
+	public void setId(String uuid) {
+		this.id = uuid;
+	}
+	
+	@Basic
+	@Column(name = "host_uuid")	
+	public String getHostUuid() {
+		return hostUuid;
+	}
+
+	public void setHostUuid(String hostUuid) {
+		this.hostUuid = hostUuid;
 	}
 
 	/**
@@ -432,7 +438,7 @@ public class ClientDetailsEntity implements ClientDetails {
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(
 			name="client_scope",
-			joinColumns=@JoinColumn(name="owner_id")
+			joinColumns=@JoinColumn(name="client_uuid")
 			)
 	@Override
 	@Column(name="scope")
@@ -453,7 +459,7 @@ public class ClientDetailsEntity implements ClientDetails {
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(
 			name="client_grant_type",
-			joinColumns=@JoinColumn(name="owner_id")
+			joinColumns=@JoinColumn(name="client_uuid")
 			)
 	@Column(name="grant_type")
 	public Set<String> getGrantTypes() {
@@ -482,7 +488,7 @@ public class ClientDetailsEntity implements ClientDetails {
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(
 			name="client_authority",
-			joinColumns=@JoinColumn(name="owner_id")
+			joinColumns=@JoinColumn(name="client_uuid")
 			)
 	@Override
 	@Convert(converter = SimpleGrantedAuthorityStringConverter.class)
@@ -532,7 +538,7 @@ public class ClientDetailsEntity implements ClientDetails {
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(
 			name="client_redirect_uri",
-			joinColumns=@JoinColumn(name="owner_id")
+			joinColumns=@JoinColumn(name="client_uuid")
 			)
 	@Column(name="redirect_uri")
 	public Set<String> getRedirectUris() {
@@ -562,7 +568,7 @@ public class ClientDetailsEntity implements ClientDetails {
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(
 			name="client_resource",
-			joinColumns=@JoinColumn(name="owner_id")
+			joinColumns=@JoinColumn(name="client_uuid")
 			)
 	@Column(name="resource_id")
 	public Set<String> getResourceIds() {
@@ -637,7 +643,7 @@ public class ClientDetailsEntity implements ClientDetails {
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(
 			name="client_contact",
-			joinColumns=@JoinColumn(name="owner_id")
+			joinColumns=@JoinColumn(name="client_uuid")
 			)
 	@Column(name="contact")
 	public Set<String> getContacts() {
@@ -749,7 +755,7 @@ public class ClientDetailsEntity implements ClientDetails {
 	}
 
 	@Basic
-	@Column(name = "user_info_signed_response_alg")
+	@Column(name = "user_info_signed_resp_alg")
 	@Convert(converter = JWSAlgorithmStringConverter.class)
 	public JWSAlgorithm getUserInfoSignedResponseAlg() {
 		return userInfoSignedResponseAlg;
@@ -760,7 +766,7 @@ public class ClientDetailsEntity implements ClientDetails {
 	}
 
 	@Basic
-	@Column(name = "user_info_encrypted_response_alg")
+	@Column(name = "user_info_encrypted_resp_alg")
 	@Convert(converter = JWEAlgorithmStringConverter.class)
 	public JWEAlgorithm getUserInfoEncryptedResponseAlg() {
 		return userInfoEncryptedResponseAlg;
@@ -771,7 +777,7 @@ public class ClientDetailsEntity implements ClientDetails {
 	}
 
 	@Basic
-	@Column(name = "user_info_encrypted_response_enc")
+	@Column(name = "user_info_encrypted_resp_enc")
 	@Convert(converter = JWEEncryptionMethodStringConverter.class)
 	public EncryptionMethod getUserInfoEncryptedResponseEnc() {
 		return userInfoEncryptedResponseEnc;
@@ -782,7 +788,7 @@ public class ClientDetailsEntity implements ClientDetails {
 	}
 
 	@Basic
-	@Column(name="id_token_signed_response_alg")
+	@Column(name="id_token_signed_resp_alg")
 	@Convert(converter = JWSAlgorithmStringConverter.class)
 	public JWSAlgorithm getIdTokenSignedResponseAlg() {
 		return idTokenSignedResponseAlg;
@@ -793,7 +799,7 @@ public class ClientDetailsEntity implements ClientDetails {
 	}
 
 	@Basic
-	@Column(name = "id_token_encrypted_response_alg")
+	@Column(name = "id_token_encrypted_resp_alg")
 	@Convert(converter = JWEAlgorithmStringConverter.class)
 	public JWEAlgorithm getIdTokenEncryptedResponseAlg() {
 		return idTokenEncryptedResponseAlg;
@@ -804,7 +810,7 @@ public class ClientDetailsEntity implements ClientDetails {
 	}
 
 	@Basic
-	@Column(name = "id_token_encrypted_response_enc")
+	@Column(name = "id_token_encrypted_resp_enc")
 	@Convert(converter = JWEEncryptionMethodStringConverter.class)
 	public EncryptionMethod getIdTokenEncryptedResponseEnc() {
 		return idTokenEncryptedResponseEnc;
@@ -815,7 +821,7 @@ public class ClientDetailsEntity implements ClientDetails {
 	}
 
 	@Basic
-	@Column(name="token_endpoint_auth_signing_alg")
+	@Column(name="token_endpoint_auth_sign_alg")
 	@Convert(converter = JWSAlgorithmStringConverter.class)
 	public JWSAlgorithm getTokenEndpointAuthSigningAlg() {
 		return tokenEndpointAuthSigningAlg;
@@ -850,8 +856,8 @@ public class ClientDetailsEntity implements ClientDetails {
 	 */
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(
-			name="client_response_type",
-			joinColumns=@JoinColumn(name="owner_id")
+			name="client_resp_type",
+			joinColumns=@JoinColumn(name="client_uuid")
 			)
 	@Column(name="response_type")
 	public Set<String> getResponseTypes() {
@@ -871,7 +877,7 @@ public class ClientDetailsEntity implements ClientDetails {
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(
 			name="client_default_acr_value",
-			joinColumns=@JoinColumn(name="owner_id")
+			joinColumns=@JoinColumn(name="client_uuid")
 			)
 	@Column(name="default_acr_value")
 	public Set<String> getDefaultACRvalues() {
@@ -906,8 +912,8 @@ public class ClientDetailsEntity implements ClientDetails {
 	 */
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(
-			name="client_post_logout_redirect_uri",
-			joinColumns=@JoinColumn(name="owner_id")
+			name="client_post_logout_redir_uri",
+			joinColumns=@JoinColumn(name="client_uuid")
 			)
 	@Column(name="post_logout_redirect_uri")
 	public Set<String> getPostLogoutRedirectUris() {
@@ -927,7 +933,7 @@ public class ClientDetailsEntity implements ClientDetails {
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(
 			name="client_request_uri",
-			joinColumns=@JoinColumn(name="owner_id")
+			joinColumns=@JoinColumn(name="client_uuid")
 			)
 	@Column(name="request_uri")
 	public Set<String> getRequestUris() {
@@ -987,7 +993,7 @@ public class ClientDetailsEntity implements ClientDetails {
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(
 			name="client_claims_redirect_uri",
-			joinColumns=@JoinColumn(name="owner_id")
+			joinColumns=@JoinColumn(name="client_uuid")
 			)
 	@Column(name="redirect_uri")
 	public Set<String> getClaimsRedirectUris() {

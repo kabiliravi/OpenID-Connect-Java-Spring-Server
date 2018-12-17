@@ -31,7 +31,7 @@ public interface ResourceSetService {
 
 	public ResourceSet saveNew(ResourceSet rs);
 
-	public ResourceSet getById(Long id);
+	public ResourceSet getById(String uuid);
 
 	public ResourceSet update(ResourceSet oldRs, ResourceSet newRs);
 

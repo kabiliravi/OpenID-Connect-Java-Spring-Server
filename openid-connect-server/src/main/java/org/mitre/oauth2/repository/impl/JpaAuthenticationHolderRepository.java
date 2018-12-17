@@ -25,9 +25,12 @@ import javax.persistence.TypedQuery;
 
 import org.mitre.data.DefaultPageCriteria;
 import org.mitre.data.PageCriteria;
+import org.mitre.host.service.HostInfoService;
 import org.mitre.oauth2.model.AuthenticationHolderEntity;
+import org.mitre.oauth2.model.AuthorizationCodeEntity;
 import org.mitre.oauth2.repository.AuthenticationHolderRepository;
 import org.mitre.util.jpa.JpaUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,32 +42,38 @@ public class JpaAuthenticationHolderRepository implements AuthenticationHolderRe
 
 	@PersistenceContext(unitName="defaultPersistenceUnit")
 	private EntityManager manager;
+	
+	@Autowired
+	HostInfoService hostInfoService;
 
 	@Override
 	public List<AuthenticationHolderEntity> getAll() {
 		TypedQuery<AuthenticationHolderEntity> query = manager.createNamedQuery(AuthenticationHolderEntity.QUERY_ALL, AuthenticationHolderEntity.class);
+		query.setParameter(AuthorizationCodeEntity.PARAM_HOST_UUID, hostInfoService.getCurrentHostUuid());
 		return query.getResultList();
 	}
 
 	@Override
-	public AuthenticationHolderEntity getById(Long id) {
-		return manager.find(AuthenticationHolderEntity.class, id);
+	public AuthenticationHolderEntity getById(String uuid) {
+		AuthenticationHolderEntity entity = manager.find(AuthenticationHolderEntity.class, uuid);
+		if (entity == null) {
+			throw new IllegalArgumentException("AuthenticationHolderEntity not found: " + uuid);
+		}
+		hostInfoService.validateHost(entity.getHostUuid());
+		return entity;
 	}
 
 	@Override
 	@Transactional(value="defaultTransactionManager")
 	public void remove(AuthenticationHolderEntity a) {
 		AuthenticationHolderEntity found = getById(a.getId());
-		if (found != null) {
-			manager.remove(found);
-		} else {
-			throw new IllegalArgumentException("AuthenticationHolderEntity not found: " + a);
-		}
+		manager.remove(found);
 	}
 
 	@Override
 	@Transactional(value="defaultTransactionManager")
 	public AuthenticationHolderEntity save(AuthenticationHolderEntity a) {
+		a.setHostUuid(hostInfoService.getCurrentHostUuid());
 		return JpaUtil.saveOrUpdate(a.getId(), manager, a);
 	}
 

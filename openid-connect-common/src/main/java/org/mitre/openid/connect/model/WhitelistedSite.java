@@ -25,8 +25,6 @@ import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.NamedQueries;
@@ -42,9 +40,9 @@ import javax.persistence.Table;
 @Entity
 @Table(name="whitelisted_site")
 @NamedQueries({
-	@NamedQuery(name = WhitelistedSite.QUERY_ALL, query = "select w from WhitelistedSite w"),
-	@NamedQuery(name = WhitelistedSite.QUERY_BY_CLIENT_ID, query = "select w from WhitelistedSite w where w.clientId = :" + WhitelistedSite.PARAM_CLIENT_ID),
-	@NamedQuery(name = WhitelistedSite.QUERY_BY_CREATOR, query = "select w from WhitelistedSite w where w.creatorUserId = :" + WhitelistedSite.PARAM_USER_ID)
+	@NamedQuery(name = WhitelistedSite.QUERY_ALL, query = "select w from WhitelistedSite w where w.hostUuid = :hostUuid"),
+	@NamedQuery(name = WhitelistedSite.QUERY_BY_CLIENT_ID, query = "select w from WhitelistedSite w where w.hostUuid = :hostUuid and w.clientId = :" + WhitelistedSite.PARAM_CLIENT_ID),
+	@NamedQuery(name = WhitelistedSite.QUERY_BY_CREATOR, query = "select w from WhitelistedSite w where w.hostUuid = :hostUuid and w.creatorUserId = :" + WhitelistedSite.PARAM_USER_ID)
 })
 public class WhitelistedSite {
 
@@ -52,11 +50,13 @@ public class WhitelistedSite {
 	public static final String QUERY_BY_CLIENT_ID = "WhitelistedSite.getByClientId";
 	public static final String QUERY_ALL = "WhitelistedSite.getAll";
 
+	public static final String PARAM_HOST_UUID = "hostUuid";
 	public static final String PARAM_USER_ID = "userId";
 	public static final String PARAM_CLIENT_ID = "clientId";
 
 	// unique id
-	private Long id;
+	private String id;
+	private String hostUuid;
 
 	// Reference to the admin user who created this entry
 	private String creatorUserId;
@@ -75,28 +75,31 @@ public class WhitelistedSite {
 
 	}
 
-	/**
-	 * @return the id
-	 */
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
-	public Long getId() {
+	@Column(name = "uuid")
+	public String getId() {
 		return id;
 	}
 
-	/**
-	 * @param id the id to set
-	 */
-	public void setId(Long id) {
-		this.id = id;
+	public void setId(String uuid) {
+		this.id = uuid;
+	}
+	
+	@Basic
+	@Column(name = "host_uuid")
+	public String getHostUuid() {
+		return hostUuid;
+	}
+
+	public void setHostUuid(String hostUuid) {
+		this.hostUuid = hostUuid;
 	}
 
 	/**
 	 * @return the clientId
 	 */
 	@Basic
-	@Column(name="client_id")
+	@Column(name="client_uuid")
 	public String getClientId() {
 		return clientId;
 	}
@@ -114,7 +117,7 @@ public class WhitelistedSite {
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(
 			name="whitelisted_site_scope",
-			joinColumns=@JoinColumn(name="owner_id")
+			joinColumns=@JoinColumn(name="whitelisted_site_uuid")
 			)
 	@Column(name="scope")
 	public Set<String> getAllowedScopes() {
@@ -129,7 +132,7 @@ public class WhitelistedSite {
 	}
 
 	@Basic
-	@Column(name="creator_user_id")
+	@Column(name="creator_user_uuid")
 	public String getCreatorUserId() {
 		return creatorUserId;
 	}

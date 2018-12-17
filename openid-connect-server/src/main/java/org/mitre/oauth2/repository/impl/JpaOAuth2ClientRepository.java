@@ -23,9 +23,11 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 
+import org.mitre.host.service.HostInfoService;
 import org.mitre.oauth2.model.ClientDetailsEntity;
 import org.mitre.oauth2.repository.OAuth2ClientRepository;
 import org.mitre.util.jpa.JpaUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +41,9 @@ public class JpaOAuth2ClientRepository implements OAuth2ClientRepository {
 
 	@PersistenceContext(unitName="defaultPersistenceUnit")
 	private EntityManager manager;
+	
+	@Autowired
+	HostInfoService hostInfoService;
 
 	public JpaOAuth2ClientRepository() {
 
@@ -49,8 +54,13 @@ public class JpaOAuth2ClientRepository implements OAuth2ClientRepository {
 	}
 
 	@Override
-	public ClientDetailsEntity getById(Long id) {
-		return manager.find(ClientDetailsEntity.class, id);
+	public ClientDetailsEntity getById(String uuid) {
+		ClientDetailsEntity entity = manager.find(ClientDetailsEntity.class, uuid);
+		if (entity == null) {
+			throw new IllegalArgumentException("ClientDetailsEntity not found: " + uuid);
+		}
+		hostInfoService.validateHost(entity.getHostUuid());
+		return entity;
 	}
 
 	/* (non-Javadoc)
@@ -59,6 +69,7 @@ public class JpaOAuth2ClientRepository implements OAuth2ClientRepository {
 	@Override
 	public ClientDetailsEntity getClientByClientId(String clientId) {
 		TypedQuery<ClientDetailsEntity> query = manager.createNamedQuery(ClientDetailsEntity.QUERY_BY_CLIENT_ID, ClientDetailsEntity.class);
+		query.setParameter(ClientDetailsEntity.PARAM_HOST_UUID, hostInfoService.getCurrentHostUuid());
 		query.setParameter(ClientDetailsEntity.PARAM_CLIENT_ID, clientId);
 		return JpaUtil.getSingleResult(query.getResultList());
 	}
@@ -67,8 +78,9 @@ public class JpaOAuth2ClientRepository implements OAuth2ClientRepository {
 	 * @see org.mitre.oauth2.repository.OAuth2ClientRepository#saveClient(org.mitre.oauth2.model.ClientDetailsEntity)
 	 */
 	@Override
-	public ClientDetailsEntity saveClient(ClientDetailsEntity client) {
-		return JpaUtil.saveOrUpdate(client.getClientId(), manager, client);
+	public ClientDetailsEntity saveClient(ClientDetailsEntity client) {		
+		client.setHostUuid(hostInfoService.getCurrentHostUuid());
+		return JpaUtil.saveOrUpdate(client.getId(), manager, client);
 	}
 
 	/* (non-Javadoc)
@@ -85,16 +97,19 @@ public class JpaOAuth2ClientRepository implements OAuth2ClientRepository {
 	}
 
 	@Override
-	public ClientDetailsEntity updateClient(Long id, ClientDetailsEntity client) {
+	public ClientDetailsEntity updateClient(String uuid, ClientDetailsEntity client) {
 		// sanity check
-		client.setId(id);
+		client.setId(uuid);
+		
+		hostInfoService.validateHost(client.getHostUuid());
 
-		return JpaUtil.saveOrUpdate(id, manager, client);
+		return JpaUtil.saveOrUpdate(uuid, manager, client);
 	}
 
 	@Override
 	public Collection<ClientDetailsEntity> getAllClients() {
 		TypedQuery<ClientDetailsEntity> query = manager.createNamedQuery(ClientDetailsEntity.QUERY_ALL, ClientDetailsEntity.class);
+		query.setParameter(ClientDetailsEntity.PARAM_HOST_UUID, hostInfoService.getCurrentHostUuid());
 		return query.getResultList();
 	}
 

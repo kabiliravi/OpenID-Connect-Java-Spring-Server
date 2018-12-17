@@ -77,7 +77,7 @@ public class DefaultSystemScopeService implements SystemScopeService {
 				SystemScope s = getByValue(input);
 				if (s == null) {
 					// make a fake one otherwise
-					s = new SystemScope(input);
+					s = new SystemScope(null, input);
 				}
 
 				return s;
@@ -104,11 +104,8 @@ public class DefaultSystemScopeService implements SystemScopeService {
 		return repository.getAll();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.mitre.oauth2.service.SystemScopeService#getById(java.lang.Long)
-	 */
 	@Override
-	public SystemScope getById(Long id) {
+	public SystemScope getById(String id) {
 		return repository.getById(id);
 	}
 

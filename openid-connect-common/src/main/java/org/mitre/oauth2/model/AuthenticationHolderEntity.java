@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
@@ -32,8 +33,6 @@ import javax.persistence.Convert;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.MapKeyColumn;
@@ -52,18 +51,22 @@ import org.springframework.security.oauth2.provider.OAuth2Request;
 @Entity
 @Table(name = "authentication_holder")
 @NamedQueries ({
-	@NamedQuery(name = AuthenticationHolderEntity.QUERY_ALL, query = "select a from AuthenticationHolderEntity a"),
+	@NamedQuery(name = AuthenticationHolderEntity.QUERY_ALL, query = "select a from AuthenticationHolderEntity a where a.hostUuid = :" + AuthenticationHolderEntity.PARAM_HOST_UUID),
 	@NamedQuery(name = AuthenticationHolderEntity.QUERY_GET_UNUSED, query = "select a from AuthenticationHolderEntity a where " +
 			"a.id not in (select t.authenticationHolder.id from OAuth2AccessTokenEntity t) and " +
 			"a.id not in (select r.authenticationHolder.id from OAuth2RefreshTokenEntity r) and " +
-			"a.id not in (select c.authenticationHolder.id from AuthorizationCodeEntity c)")
+			"a.id not in (select c.authenticationHolder.id from AuthorizationCodeEntity c) ")
 })
 public class AuthenticationHolderEntity {
 
 	public static final String QUERY_GET_UNUSED = "AuthenticationHolderEntity.getUnusedAuthenticationHolders";
 	public static final String QUERY_ALL = "AuthenticationHolderEntity.getAll";
+	
+	public static final String PARAM_HOST_UUID = "hostUuid";
 
-	private Long id;
+	private String id;
+	
+	private String hostUuid;
 
 	private SavedUserAuthentication userAuth;
 
@@ -86,18 +89,32 @@ public class AuthenticationHolderEntity {
 	private Map<String, String> requestParameters;
 
 	public AuthenticationHolderEntity() {
-
+		this.id = UUID.randomUUID().toString();
 	}
+	
+	public AuthenticationHolderEntity(String uuid) {
+		this.id = uuid;
+	}
+
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
-	public Long getId() {
+	@Column(name = "uuid")
+	public String getId() {
 		return id;
 	}
+	
+	public void setId(String uuid) {
+		this.id = uuid;
+	}
+	
+	@Basic
+	@Column(name = "host_uuid")
+	public String getHostUuid() {
+		return hostUuid;
+	}
 
-	public void setId(Long id) {
-		this.id = id;
+	public void setHostUuid(String hostUuid) {
+		this.hostUuid = hostUuid;
 	}
 
 	@Transient
@@ -113,8 +130,9 @@ public class AuthenticationHolderEntity {
 		return new OAuth2Request(requestParameters, clientId, authorities, approved, scope, resourceIds, redirectUri, responseTypes, extensions);
 	}
 
-	public void setAuthentication(OAuth2Authentication authentication) {
-
+	public void setAuthentication(OAuth2Authentication authentication, String hostUuid) {
+		setHostUuid(hostUuid);
+		
 		// pull apart the request and save its bits
 		OAuth2Request o2Request = authentication.getOAuth2Request();
 		setAuthorities(o2Request.getAuthorities() == null ? null : new HashSet<>(o2Request.getAuthorities()));
@@ -126,9 +144,11 @@ public class AuthenticationHolderEntity {
 		setResponseTypes(o2Request.getResponseTypes() == null ? null : new HashSet<>(o2Request.getResponseTypes()));
 		setScope(o2Request.getScope() == null ? null : new HashSet<>(o2Request.getScope()));
 		setApproved(o2Request.isApproved());
+		
 
 		if (authentication.getUserAuthentication() != null) {
 			this.userAuth = new SavedUserAuthentication(authentication.getUserAuthentication());
+			this.userAuth.setHostUuid(hostUuid);
 		} else {
 			this.userAuth = null;
 		}
@@ -138,7 +158,7 @@ public class AuthenticationHolderEntity {
 	 * @return the userAuth
 	 */
 	@OneToOne(cascade=CascadeType.ALL)
-	@JoinColumn(name = "user_auth_id")
+	@JoinColumn(name = "user_auth_uuid")
 	public SavedUserAuthentication getUserAuth() {
 		return userAuth;
 	}
@@ -155,8 +175,8 @@ public class AuthenticationHolderEntity {
 	 */
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(
-			name="authentication_holder_authority",
-			joinColumns=@JoinColumn(name="owner_id")
+			name="auth_holder_authority",
+			joinColumns=@JoinColumn(name="auth_holder_uuid")
 			)
 	@Convert(converter = SimpleGrantedAuthorityStringConverter.class)
 	@Column(name="authority")
@@ -176,8 +196,8 @@ public class AuthenticationHolderEntity {
 	 */
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(
-			name="authentication_holder_resource_id",
-			joinColumns=@JoinColumn(name="owner_id")
+			name="auth_holder_resource_id",
+			joinColumns=@JoinColumn(name="auth_holder_uuid")
 			)
 	@Column(name="resource_id")
 	public Set<String> getResourceIds() {
@@ -228,8 +248,8 @@ public class AuthenticationHolderEntity {
 	 */
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(
-			name="authentication_holder_response_type",
-			joinColumns=@JoinColumn(name="owner_id")
+			name="auth_holder_resp_type",
+			joinColumns=@JoinColumn(name="auth_holder_uuid")
 			)
 	@Column(name="response_type")
 	public Set<String> getResponseTypes() {
@@ -248,8 +268,8 @@ public class AuthenticationHolderEntity {
 	 */
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(
-			name="authentication_holder_extension",
-			joinColumns=@JoinColumn(name="owner_id")
+			name="auth_holder_extension",
+			joinColumns=@JoinColumn(name="auth_holder_uuid")
 			)
 	@Column(name="val")
 	@MapKeyColumn(name="extension")
@@ -286,8 +306,8 @@ public class AuthenticationHolderEntity {
 	 */
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(
-			name="authentication_holder_scope",
-			joinColumns=@JoinColumn(name="owner_id")
+			name="auth_holder_scope",
+			joinColumns=@JoinColumn(name="auth_holder_uuid", referencedColumnName = "uuid")
 			)
 	@Column(name="scope")
 	public Set<String> getScope() {
@@ -306,8 +326,8 @@ public class AuthenticationHolderEntity {
 	 */
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(
-			name="authentication_holder_request_parameter",
-			joinColumns=@JoinColumn(name="owner_id")
+			name="auth_holder_request_parameter",
+			joinColumns=@JoinColumn(name="auth_holder_uuid")
 			)
 	@Column(name="val")
 	@MapKeyColumn(name="param")

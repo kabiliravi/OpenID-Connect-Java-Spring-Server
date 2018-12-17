@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.mitre.data.AbstractPageOperationTemplate;
+import org.mitre.host.service.HostInfoService;
 import org.mitre.oauth2.model.AuthenticationHolderEntity;
 import org.mitre.oauth2.model.ClientDetailsEntity;
 import org.mitre.oauth2.model.DeviceCode;
@@ -44,6 +45,9 @@ public class DefaultDeviceCodeService implements DeviceCodeService {
 
 	@Autowired
 	private DeviceCodeRepository repository;
+	
+	@Autowired
+	private HostInfoService hostInfoService;
 
 	private RandomValueStringGenerator randomGenerator = new RandomValueStringGenerator();
 
@@ -52,14 +56,14 @@ public class DefaultDeviceCodeService implements DeviceCodeService {
 	 */
 	@Override
 	public DeviceCode createNewDeviceCode(Set<String> requestedScopes, ClientDetailsEntity client, Map<String, String> parameters) {
-
+		
 		// create a device code, should be big and random
 		String deviceCode = UUID.randomUUID().toString();
 
 		// create a user code, should be random but small and typable, and always uppercase (lookup is case insensitive)
 		String userCode = randomGenerator.generate().toUpperCase();
 
-		DeviceCode dc = new DeviceCode(deviceCode, userCode, requestedScopes, client.getClientId(), parameters);
+		DeviceCode dc = new DeviceCode(hostInfoService.getCurrentHostUuid(), deviceCode, userCode, requestedScopes, client.getClientId(), parameters);
 
 		if (client.getDeviceCodeValiditySeconds() != null) {
 			dc.setExpiration(new Date(System.currentTimeMillis() + client.getDeviceCodeValiditySeconds() * 1000L));
@@ -89,7 +93,7 @@ public class DefaultDeviceCodeService implements DeviceCodeService {
 		found.setApproved(true);
 
 		AuthenticationHolderEntity authHolder = new AuthenticationHolderEntity();
-		authHolder.setAuthentication(auth);
+		authHolder.setAuthentication(auth, hostInfoService.getCurrentHostUuid());		
 
 		found.setAuthenticationHolder(authHolder);
 
@@ -126,7 +130,7 @@ public class DefaultDeviceCodeService implements DeviceCodeService {
 	@Override
 	@Transactional(value="defaultTransactionManager")
 	public void clearExpiredDeviceCodes() {
-
+	
 		new AbstractPageOperationTemplate<DeviceCode>("clearExpiredDeviceCodes"){
 			@Override
 			public Collection<DeviceCode> fetchPage() {

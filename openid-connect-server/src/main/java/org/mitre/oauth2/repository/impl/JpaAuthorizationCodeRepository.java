@@ -28,9 +28,11 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 
 import org.mitre.data.PageCriteria;
+import org.mitre.host.service.HostInfoService;
 import org.mitre.oauth2.model.AuthorizationCodeEntity;
 import org.mitre.oauth2.repository.AuthorizationCodeRepository;
 import org.mitre.util.jpa.JpaUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,6 +48,9 @@ public class JpaAuthorizationCodeRepository implements AuthorizationCodeReposito
 
 	@PersistenceContext(unitName="defaultPersistenceUnit")
 	EntityManager manager;
+	
+	@Autowired
+	HostInfoService hostInfoService;
 
 	/* (non-Javadoc)
 	 * @see org.mitre.oauth2.repository.AuthorizationCodeRepository#save(org.mitre.oauth2.model.AuthorizationCodeEntity)
@@ -54,6 +59,8 @@ public class JpaAuthorizationCodeRepository implements AuthorizationCodeReposito
 	@Transactional(value="defaultTransactionManager")
 	public AuthorizationCodeEntity save(AuthorizationCodeEntity authorizationCode) {
 
+		authorizationCode.setHostUuid(hostInfoService.getCurrentHostUuid());
+		
 		return JpaUtil.saveOrUpdate(authorizationCode.getId(), manager, authorizationCode);
 
 	}
@@ -65,7 +72,8 @@ public class JpaAuthorizationCodeRepository implements AuthorizationCodeReposito
 	@Transactional(value="defaultTransactionManager")
 	public AuthorizationCodeEntity getByCode(String code) {
 		TypedQuery<AuthorizationCodeEntity> query = manager.createNamedQuery(AuthorizationCodeEntity.QUERY_BY_VALUE, AuthorizationCodeEntity.class);
-		query.setParameter("code", code);
+		query.setParameter(AuthorizationCodeEntity.PARAM_HOST_UUID, hostInfoService.getCurrentHostUuid());
+		query.setParameter(AuthorizationCodeEntity.PARAM_CODE, code);
 
 		AuthorizationCodeEntity result = JpaUtil.getSingleResult(query.getResultList());
 		return result;
@@ -78,6 +86,7 @@ public class JpaAuthorizationCodeRepository implements AuthorizationCodeReposito
 	public void remove(AuthorizationCodeEntity authorizationCodeEntity) {
 		AuthorizationCodeEntity found = manager.find(AuthorizationCodeEntity.class, authorizationCodeEntity.getId());
 		if (found != null) {
+			hostInfoService.validateHost(found.getHostUuid());
 			manager.remove(found);
 		}
 	}

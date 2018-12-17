@@ -16,7 +16,12 @@
 package org.mitre.oauth2.service.impl;
 
 import static com.google.common.collect.Sets.newHashSet;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -39,14 +44,6 @@ import org.springframework.security.oauth2.provider.OAuth2Request;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-
-import static org.junit.Assert.assertThat;
 
 public class TestDefaultIntrospectionResultAssembler {
 
@@ -88,7 +85,7 @@ public class TestDefaultIntrospectionResultAssembler {
 
 		// given
 		OAuth2AccessTokenEntity accessToken = accessToken(new Date(123 * 1000L), scopes("foo", "bar"),
-				permissions(permission(1L, "foo", "bar")),
+				permissions(permission("1", "foo", "bar")),
 				"Bearer", oauth2AuthenticationWithUser(oauth2Request("clientId"), "name"));
 
 		UserInfo userInfo = userInfo("sub");
@@ -353,7 +350,7 @@ public class TestDefaultIntrospectionResultAssembler {
 		return newHashSet(permissions);
 	}
 
-	private Permission permission(Long resourceSetId, String... scopes) {
+	private Permission permission(String resourceSetId, String... scopes) {
 		Permission permission = mock(Permission.class, RETURNS_DEEP_STUBS);
 		given(permission.getResourceSet().getId()).willReturn(resourceSetId);
 		given(permission.getScopes()).willReturn(scopes(scopes));
