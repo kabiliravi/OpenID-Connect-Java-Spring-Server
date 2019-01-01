@@ -32,6 +32,7 @@ import static org.mitre.openid.connect.request.ConnectRequestParameters.STATE;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -46,11 +47,13 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.http.client.utils.URIBuilder;
+import org.mitre.host.util.HostUtils;
 import org.mitre.oauth2.model.ClientDetailsEntity;
 import org.mitre.oauth2.service.ClientDetailsEntityService;
 import org.mitre.openid.connect.service.LoginHintExtracter;
 import org.mitre.openid.connect.service.impl.RemoveLoginHintsWithHTTP;
 import org.mitre.openid.connect.web.AuthenticationTimeStamper;
+import org.mitre.util.HttpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,6 +108,12 @@ public class AuthorizationRequestFilter extends GenericFilterBean {
 
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) res;
+		
+		URL hostUrl = HttpUtils.getHost(request);
+		
+		HostUtils.setCurrentContextPath(request.getContextPath());
+		HostUtils.setCurrentHost(hostUrl);
+		
 		HttpSession session = request.getSession();
 
 		// skip everything that's not an authorize URL
