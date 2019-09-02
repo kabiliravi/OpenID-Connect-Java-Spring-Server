@@ -361,6 +361,13 @@
 
 	<dependencyManagement>
 		<dependencies>
+			<!-- https://mvnrepository.com/artifact/javax.annotation/javax.annotation-api -->
+			<dependency>
+				<groupId>javax.annotation</groupId>
+				<artifactId>javax.annotation-api</artifactId>
+				<version>1.3.2</version>
+			</dependency>
+
 			<!-- Spring -->
 			<dependency>
 				<groupId>org.springframework</groupId>
@@ -663,41 +670,37 @@
 			<artifactId>jsp-api</artifactId>
 		</dependency>
 	</dependencies>
-	
+
 	<repositories>
 		<repository>
 			<id>central</id>
-			<url>http://nexus.systeminventors.com/repository/maven-central/</url>
+			<url>http://nexus.systeminventors.local:8081/repository/maven-central/</url>
 		</repository>
 		<repository>
 			<id>maven-releases</id>
-			<url>http://nexus.systeminventors.com/repository/maven-releases/</url>
+			<url>http://nexus.systeminventors.local:8081/repository/maven-releases/</url>
 		</repository>
 		<repository>
 			<id>maven-snapshots</id>
-			<url>http://nexus.systeminventors.com/repository/maven-snapshots/</url>
+			<url>http://nexus.systeminventors.local:8081/repository/maven-snapshots/</url>
 		</repository>
 		<repository>
 			<id>spring-repo-release</id>
-			<url>http://nexus.systeminventors.com/repository/spring-repo-release/</url>
+			<url>http://nexus.systeminventors.local:8081/repository/spring-repo-release/</url>
 		</repository>
 		<repository>
 			<id>spring-repo-snapshot</id>
-			<url>http://nexus.systeminventors.com/repository/spring-repo-snapshot/</url>
-		</repository>
-		<repository>
-			<id>misc_repo</id>
-			<url>http://nexus.systeminventors.com/repository/misc/</url>
+			<url>http://nexus.systeminventors.local:8081/repository/spring-repo-snapshot/</url>
 		</repository>
 	</repositories>
- 	<distributionManagement>
+	<distributionManagement>
 		<repository>
 			<id>maven-releases</id>
-			<url>http://nexus.systeminventors.com/repository/maven-releases/</url>
+			<url>http://nexus.systeminventors.local:8081/repository/maven-releases/</url>
 		</repository>
 		<snapshotRepository>
 			<id>maven-snapshots</id>
-			<url>http://nexus.systeminventors.com/repository/maven-snapshots/</url>
+			<url>http://nexus.systeminventors.local:8081/repository/maven-snapshots/</url>
 		</snapshotRepository>
 	</distributionManagement>
 
